@@ -1111,6 +1111,9 @@ void TearDownOncePerProcess() {
   }
 }
 
+ErrorCapture* error_capture;
+ErrorCapture::~ErrorCapture() {}
+
 InitializationResult::~InitializationResult() {}
 InitializationResultImpl::~InitializationResultImpl() {}
 

@@ -220,7 +220,6 @@ typedef intptr_t ssize_t;
 # include <sys/types.h>  // size_t, ssize_t
 #endif  // _WIN32
 
-
 namespace node {
 
 class IsolateData;
@@ -283,6 +282,16 @@ enum Flags : uint32_t {
   kDoNotTerminateIsolate = 1 << 0,
 };
 }  // namespace StopFlags
+
+class NODE_EXTERN ErrorCapture {
+ public:
+  virtual ~ErrorCapture() = 0;
+
+  virtual const char* error() = 0;    
+  virtual void set_error(std::string error) = 0;
+};
+
+extern NODE_EXTERN ErrorCapture* error_capture;
 
 class NODE_EXTERN InitializationResult {
  public:
