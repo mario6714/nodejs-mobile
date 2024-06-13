@@ -1178,9 +1178,13 @@ void TriggerUncaughtException(Isolate* isolate,
   Local<Value> code;
   if (process_object->Get(env->context(), exit_code).ToLocal(&code) &&
       code->IsInt32()) {
-    env->Exit(code.As<Int32>()->Value());
+    //env->Exit(code.As<Int32>()->Value());
   } else {
-    env->Exit(1);
+    //env->Exit(1);
+  }
+  
+  if (node::error_capture != nullptr) {
+    node::error_capture->on_error();
   }
 }
 
