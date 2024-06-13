@@ -50,3 +50,25 @@ build-android-arm:
       - arm
       - logs.txt
     when: always
+
+build-ios-arm:
+  stage: build
+  when: manual
+  timeout: 2h
+  allow_failure: true
+  script:
+    - export DEVELOPER_DIR=$XCODE_PATH
+    - ./tools/ios_framework_prepare_arm.sh
+  tags:
+    - ios
+
+build-ios:
+  stage: build
+  when: manual
+  timeout: 2h
+  allow_failure: true
+  script:
+    - export DEVELOPER_DIR=$XCODE_PATH
+    - ./tools/ios_framework_prepare.sh
+  tags:
+    - ios

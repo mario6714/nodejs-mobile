@@ -106,6 +106,7 @@ NodeMainInstance::~NodeMainInstance() {
   // This should only be done on a main instance that owns its isolate.
   platform_->UnregisterIsolate(isolate_);
   isolate_->Dispose();
+  isolate_ = nullptr;
 }
 
 int NodeMainInstance::Run() {
