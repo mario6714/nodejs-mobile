@@ -705,7 +705,8 @@ void ResetStdio() {
 int ProcessGlobalArgs(std::vector<std::string>* args,
                       std::vector<std::string>* exec_args,
                       std::vector<std::string>* errors,
-                      OptionEnvvarSettings settings) {
+                      OptionEnvvarSettings settings,
+                      struct uv_loop_s* event_loop) {
   // Parse a few arguments which are specific to Node.
   std::vector<std::string> v8_args;
 
@@ -756,7 +757,7 @@ int ProcessGlobalArgs(std::vector<std::string>* args,
   // performance penalty of frequent EINTR wakeups when the profiler is running.
   // Only do this for v8.log profiling, as it breaks v8::CpuProfiler users.
   if (std::find(v8_args.begin(), v8_args.end(), "--prof") != v8_args.end()) {
-    uv_loop_configure(uv_default_loop(), UV_LOOP_BLOCK_SIGNAL, SIGPROF);
+    uv_loop_configure(event_loop, UV_LOOP_BLOCK_SIGNAL, SIGPROF);
   }
 #endif
 
@@ -784,14 +785,16 @@ static std::atomic_bool init_called{false};
 // (with the corresponding additional flags set), then eventually remove this.
 int InitializeNodeWithArgs(std::vector<std::string>* argv,
                            std::vector<std::string>* exec_argv,
-                           std::vector<std::string>* errors) {
-  return InitializeNodeWithArgs(argv, exec_argv, errors,
+                           std::vector<std::string>* errors,
+                           struct uv_loop_s* event_loop) {
+  return InitializeNodeWithArgs(argv, exec_argv, errors, event_loop,
                                 ProcessFlags::kNoFlags);
 }
 
 int InitializeNodeWithArgs(std::vector<std::string>* argv,
                            std::vector<std::string>* exec_argv,
                            std::vector<std::string>* errors,
+                           struct uv_loop_s* event_loop,
                            ProcessInitializationFlags::Flags flags) {
   // Make sure InitializeNodeWithArgs() is called only once.
   CHECK(!init_called.exchange(true));
@@ -837,7 +840,8 @@ int InitializeNodeWithArgs(std::vector<std::string>* argv,
       const int exit_code = ProcessGlobalArgs(&env_argv,
                                               nullptr,
                                               errors,
-                                              kAllowedInEnvvar);
+                                              kAllowedInEnvvar,
+                                              event_loop);
       if (exit_code != 0) return exit_code;
     }
   }
@@ -847,7 +851,8 @@ int InitializeNodeWithArgs(std::vector<std::string>* argv,
     const int exit_code = ProcessGlobalArgs(argv,
                                             exec_argv,
                                             errors,
-                                            kDisallowedInEnvvar);
+                                            kDisallowedInEnvvar,
+                                            event_loop);
     if (exit_code != 0) return exit_code;
   }
 
@@ -908,6 +913,7 @@ int InitializeNodeWithArgs(std::vector<std::string>* argv,
 
 std::unique_ptr<InitializationResult> InitializeOncePerProcess(
     const std::vector<std::string>& args,
+    struct uv_loop_s* event_loop,
     ProcessInitializationFlags::Flags flags) {
   auto result = std::make_unique<InitializationResultImpl>();
   result->args_ = args;
@@ -923,7 +929,7 @@ std::unique_ptr<InitializationResult> InitializeOncePerProcess(
   // This needs to run *before* V8::Initialize().
   {
     result->exit_code_ = InitializeNodeWithArgs(
-        &result->args_, &result->exec_args_, &result->errors_, flags);
+        &result->args_, &result->exec_args_, &result->errors_, event_loop, flags);
     if (result->exit_code() != 0) {
       result->early_return_ = true;
       return result;
@@ -1128,7 +1134,8 @@ InitializationResult::~InitializationResult() {}
 InitializationResultImpl::~InitializationResultImpl() {}
 
 int GenerateAndWriteSnapshotData(const SnapshotData** snapshot_data_ptr,
-                                 const InitializationResult* result) {
+                                 const InitializationResult* result,
+                                 struct uv_loop_s* event_loop) {
   int exit_code = result->exit_code();
   // nullptr indicates there's no snapshot data.
   DCHECK_NULL(*snapshot_data_ptr);
@@ -1151,7 +1158,7 @@ int GenerateAndWriteSnapshotData(const SnapshotData** snapshot_data_ptr,
     std::unique_ptr<SnapshotData> generated_data =
         std::make_unique<SnapshotData>();
     exit_code = node::SnapshotBuilder::Generate(
-        generated_data.get(), result->args(), result->exec_args());
+        generated_data.get(), result->args(), result->exec_args(), event_loop);
     if (exit_code == 0) {
       *snapshot_data_ptr = generated_data.release();
     } else {
@@ -1182,7 +1189,8 @@ int GenerateAndWriteSnapshotData(const SnapshotData** snapshot_data_ptr,
 }
 
 int LoadSnapshotDataAndRun(const SnapshotData** snapshot_data_ptr,
-                           const InitializationResult* result) {
+                           const InitializationResult* result,
+                           struct uv_loop_s* event_loop) {
   int exit_code = result->exit_code();
   // nullptr indicates there's no snapshot data.
   DCHECK_NULL(*snapshot_data_ptr);
@@ -1220,7 +1228,7 @@ int LoadSnapshotDataAndRun(const SnapshotData** snapshot_data_ptr,
     BuiltinLoader::RefreshCodeCache((*snapshot_data_ptr)->code_cache);
   }
   NodeMainInstance main_instance(*snapshot_data_ptr,
-                                 uv_default_loop(),
+                                 event_loop,
                                  per_process::v8_platform.Platform(),
                                  result->args(),
                                  result->exec_args());
@@ -1228,7 +1236,7 @@ int LoadSnapshotDataAndRun(const SnapshotData** snapshot_data_ptr,
   return exit_code;
 }
 
-int Start(int argc, char** argv) {
+int Start(int argc, char** argv, struct uv_loop_s* event_loop) {
 #ifndef DISABLE_SINGLE_EXECUTABLE_APPLICATION
   std::tie(argc, argv) = sea::FixupArgsForSEA(argc, argv);
 #endif
@@ -1237,10 +1245,13 @@ int Start(int argc, char** argv) {
 
   // Hack around with the argv pointer. Used for process.title = "blah".
   argv = uv_setup_args(argc, argv);
+  if (event_loop == nullptr) {
+    event_loop = uv_default_loop();
+  }
   per_process::args_mem = argv;
 
   std::unique_ptr<InitializationResult> result =
-      InitializeOncePerProcess(std::vector<std::string>(argv, argv + argc));
+      InitializeOncePerProcess(std::vector<std::string>(argv, argv + argc), event_loop);
   for (const std::string& error : result->errors()) {
     FPrintF(stderr, "%s: %s\n", result->args().at(0), error);
   }
@@ -1260,7 +1271,7 @@ int Start(int argc, char** argv) {
     }
   });
 
-  uv_loop_configure(uv_default_loop(), UV_METRICS_IDLE_TIME);
+  uv_loop_configure(event_loop, UV_METRICS_IDLE_TIME);
 
   // --build-snapshot indicates that we are in snapshot building mode.
   if (per_process::cli_options->build_snapshot) {
@@ -1270,11 +1281,11 @@ int Start(int argc, char** argv) {
               "Usage: node --build-snapshot /path/to/entry.js\n");
       return 9;
     }
-    return GenerateAndWriteSnapshotData(&snapshot_data, result.get());
+    return GenerateAndWriteSnapshotData(&snapshot_data, result.get(), event_loop);
   }
 
   // Without --build-snapshot, we are in snapshot loading mode.
-  return LoadSnapshotDataAndRun(&snapshot_data, result.get());
+  return LoadSnapshotDataAndRun(&snapshot_data, result.get(), event_loop);
 }
 
 int Stop() {

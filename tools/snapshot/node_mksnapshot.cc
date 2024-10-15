@@ -66,7 +66,8 @@ int BuildSnapshot(int argc, char* argv[]) {
 
   std::unique_ptr<node::InitializationResult> result =
       node::InitializeOncePerProcess(
-          std::vector<std::string>(argv, argv + argc));
+          std::vector<std::string>(argv, argv + argc),
+          uv_default_loop());
 
   CHECK(!result->early_return());
   CHECK_EQ(result->exit_code(), 0);
@@ -87,7 +88,7 @@ int BuildSnapshot(int argc, char* argv[]) {
   int exit_code = 0;
   {
     exit_code = node::SnapshotBuilder::Generate(
-        out, result->args(), result->exec_args());
+        out, result->args(), result->exec_args(), uv_default_loop());
     if (exit_code == 0) {
       if (!out) {
         std::cerr << "Failed to write " << out_path << "\n";

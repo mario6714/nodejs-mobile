@@ -17,12 +17,14 @@ class NODE_EXTERN_PRIVATE SnapshotBuilder {
  public:
   static int Generate(std::ostream& out,
                       const std::vector<std::string> args,
-                      const std::vector<std::string> exec_args);
+                      const std::vector<std::string> exec_args,
+                      struct uv_loop_s* loop);
 
   // Generate the snapshot into out.
   static int Generate(SnapshotData* out,
                       const std::vector<std::string> args,
-                      const std::vector<std::string> exec_args);
+                      const std::vector<std::string> exec_args,
+                      struct uv_loop_s* loop);
 
   // If nullptr is returned, the binary is not built with embedded
   // snapshot.
