@@ -1095,14 +1095,18 @@ constexpr int SNAPSHOT_ERROR = 14;
 
 int SnapshotBuilder::Generate(SnapshotData* out,
                               const std::vector<std::string> args,
-                              const std::vector<std::string> exec_args) {
+                              const std::vector<std::string> exec_args,
+                              struct uv_loop_s* loop) {
   const std::vector<intptr_t>& external_references =
       CollectExternalReferences();
+  if (loop == nullptr) {
+    loop = uv_default_loop();
+  }
+  
   Isolate* isolate = Isolate::Allocate();
   // Must be done before the SnapshotCreator creation so  that the
   // memory reducer can be initialized.
-  per_process::v8_platform.Platform()->RegisterIsolate(isolate,
-                                                       uv_default_loop());
+  per_process::v8_platform.Platform()->RegisterIsolate(isolate, loop);
 
   SnapshotCreator creator(isolate, external_references.data());
 
@@ -1112,7 +1116,7 @@ int SnapshotBuilder::Generate(SnapshotData* out,
   Environment* env = nullptr;
   std::unique_ptr<NodeMainInstance> main_instance =
       NodeMainInstance::Create(isolate,
-                               uv_default_loop(),
+                               loop,
                                per_process::v8_platform.Platform(),
                                args,
                                exec_args);
@@ -1293,9 +1297,10 @@ int SnapshotBuilder::Generate(SnapshotData* out,
 
 int SnapshotBuilder::Generate(std::ostream& out,
                               const std::vector<std::string> args,
-                              const std::vector<std::string> exec_args) {
+                              const std::vector<std::string> exec_args,
+                              struct uv_loop_s* loop) {
   SnapshotData data;
-  int exit_code = Generate(&data, args, exec_args);
+  int exit_code = Generate(&data, args, exec_args, loop);
   if (exit_code != 0) {
     return exit_code;
   }

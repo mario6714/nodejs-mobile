@@ -75,6 +75,8 @@
 #include "v8-platform.h"  // NOLINT(build/include_order)
 #include "node_version.h"  // NODE_MODULE_VERSION
 
+#include "uv.h"
+
 #define NAPI_EXPERIMENTAL
 #include "node_api.h"
 
@@ -325,7 +327,7 @@ class NODE_EXTERN InitializationResult {
 
 // TODO(addaleax): Officially deprecate this and replace it with something
 // better suited for a public embedder API.
-NODE_EXTERN int Start(int argc, char* argv[]);
+NODE_EXTERN int Start(int argc, char* argv[], struct uv_loop_s* event_loop = uv_default_loop());
 
 // Tear down Node.js while it is running (there are active handles
 // in the loop and / or actively executing JavaScript code).
@@ -342,12 +344,14 @@ NODE_DEPRECATED("Use InitializeOncePerProcess() instead",
                     std::vector<std::string>* argv,
                     std::vector<std::string>* exec_argv,
                     std::vector<std::string>* errors,
+                    struct uv_loop_s* event_loop,
                     ProcessInitializationFlags::Flags flags));
 NODE_DEPRECATED("Use InitializeOncePerProcess() instead",
                 NODE_EXTERN int InitializeNodeWithArgs(
                     std::vector<std::string>* argv,
                     std::vector<std::string>* exec_argv,
-                    std::vector<std::string>* errors));
+                    std::vector<std::string>* errors,
+                    struct uv_loop_s* event_loop));
 
 // Set up per-process state needed to run Node.js. This will consume arguments
 // from args, and return information about the initialization success,
@@ -356,6 +360,7 @@ NODE_DEPRECATED("Use InitializeOncePerProcess() instead",
 // exit code.
 NODE_EXTERN std::unique_ptr<InitializationResult> InitializeOncePerProcess(
     const std::vector<std::string>& args,
+    struct uv_loop_s* event_loop,
     ProcessInitializationFlags::Flags flags =
         ProcessInitializationFlags::kNoFlags);
 // Undoes the initialization performed by InitializeOncePerProcess(),
@@ -365,11 +370,12 @@ NODE_EXTERN void TearDownOncePerProcess();
 // to worry about casts.
 inline std::unique_ptr<InitializationResult> InitializeOncePerProcess(
     const std::vector<std::string>& args,
-    std::initializer_list<ProcessInitializationFlags::Flags> list) {
+    std::initializer_list<ProcessInitializationFlags::Flags> list,
+    struct uv_loop_s* event_loop) {
   uint64_t flags_accum = ProcessInitializationFlags::kNoFlags;
   for (const auto flag : list) flags_accum |= static_cast<uint64_t>(flag);
   return InitializeOncePerProcess(
-      args, static_cast<ProcessInitializationFlags::Flags>(flags_accum));
+      args, event_loop, static_cast<ProcessInitializationFlags::Flags>(flags_accum));
 }
 
 enum OptionEnvvarSettings {
@@ -395,7 +401,8 @@ enum OptionEnvvarSettings {
 NODE_EXTERN int ProcessGlobalArgs(std::vector<std::string>* args,
                       std::vector<std::string>* exec_args,
                       std::vector<std::string>* errors,
-                      OptionEnvvarSettings settings);
+                      OptionEnvvarSettings settings,
+                      struct uv_loop_s* event_loop);
 
 class NodeArrayBufferAllocator;
 
