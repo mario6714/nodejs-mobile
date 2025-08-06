@@ -189,7 +189,7 @@
           'conditions': [
             # nodejs-mobile patch: for Android, make available <cpu_features.h> from the NDK:
             ['OS=="android"', {
-              'include_dirs': [ '<(ZLIB_ROOT)', '<(ANDROID_NDK_ROOT)/sources/android/cpufeatures' ],
+              'include_dirs': [ '<(ZLIB_ROOT)', '<(android_ndk_path)/sources/android/cpufeatures' ],
             }, {
               'include_dirs': [ '<(ZLIB_ROOT)' ],
             }],

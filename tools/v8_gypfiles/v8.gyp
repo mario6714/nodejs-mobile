@@ -2204,7 +2204,7 @@
         ['OS=="android"', {
           'copies': [{
             'files': [
-              '<(ANDROID_NDK_ROOT)/sources/android/cpufeatures/cpu-features.c',
+              '<(android_ndk_path)/sources/android/cpufeatures/cpu-features.c',
             ],
             'destination': '<(SHARED_INTERMEDIATE_DIR)/ndk-sources/',
           }],
@@ -2221,15 +2221,15 @@
         ['OS=="android" and _toolset=="target"', {
           'dependencies': ['ndk_sources'],
           'include_dirs': [
-            '<(ANDROID_NDK_ROOT)/sources/android/cpufeatures',
-            '<(ANDROID_NDK_SYSROOT)/usr/include', # cpu-features.c needs sys/system_properties.h
+            '<(android_ndk_path)/sources/android/cpufeatures',
+            '<(android_ndk_sysroot)/usr/include', # cpu-features.c needs sys/system_properties.h
           ],
           'sources': [
             '<(SHARED_INTERMEDIATE_DIR)/ndk-sources/cpu-features.c',
           ],
           'direct_dependent_settings': {
             'include_dirs': [
-              '<(ANDROID_NDK_ROOT)/sources/android/cpufeatures',
+              '<(android_ndk_path)/sources/android/cpufeatures',
             ],
           },
         }],
@@ -2250,6 +2250,7 @@
             }]
           ]
         }],
+        # nodejs-mobile patch:
         ['OS=="android" and _toolset=="target"', {
           'dependencies': ['ndk_cpufeatures'],
         }],
