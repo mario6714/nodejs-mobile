@@ -1313,7 +1313,8 @@
         # Platforms that don't have Compare-And-Swap (CAS) support need to link atomic library
         # to implement atomic memory access.
         # Clang needs it for some atomic operations (https://clang.llvm.org/docs/Toolchain.html#atomics-library).
-        ['(OS=="linux" and clang==1) or (v8_current_cpu in ["mips64", "mips64el", "arm", "riscv64", "loong64"])', {
+        # nodejs-mobile patch: https://github.com/nodejs/node/pull/57748
+        ['((OS=="linux" or OS=="android") and clang==1) or (v8_current_cpu in ["mips64", "mips64el", "ppc", "arm", "riscv64", "loong64"])', {
           'link_settings': {
             'libraries': ['-latomic', ],
           },
@@ -1452,6 +1453,8 @@
             '<(V8_ROOT)/src/base/platform/platform-posix.h',
             '<(V8_ROOT)/src/base/platform/platform-posix-time.cc',
             '<(V8_ROOT)/src/base/platform/platform-posix-time.h',
+            # nodejs-mobile patch: https://github.com/nodejs/node/pull/57748
+            '<(V8_ROOT)/src/base/platform/platform-linux.h',
           ],
           'link_settings': {
             'target_conditions': [
@@ -1977,12 +1980,14 @@
             ],
           }, { # 'OS!="win"'
             'conditions': [
-              ['_toolset == "host" and host_arch == "x64" or _toolset == "target" and target_arch=="x64"', {
+              # nodejs-mobile patch: https://github.com/nodejs/node/pull/57748
+              ['_toolset == "host" and host_arch == "x64" and (target_arch == "x64" or target_arch == "arm64") or (_toolset == "target" and target_arch == "x64")', {
                 'sources': [
                   '<(V8_ROOT)/src/heap/base/asm/x64/push_registers_asm.cc',
                 ],
               }],
-              ['_toolset == "host" and host_arch == "ia32" or _toolset == "target" and target_arch=="ia32"', {
+              # nodejs-mobile patch: https://github.com/nodejs/node/pull/57748
+              ['_toolset == "host" and host_arch == "x64" and (target_arch == "arm" or target_arch == "ia32") or (_toolset == "target" and target_arch == "ia32")', {
                 'sources': [
                   '<(V8_ROOT)/src/heap/base/asm/ia32/push_registers_asm.cc',
                 ],

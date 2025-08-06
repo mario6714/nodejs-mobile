@@ -529,11 +529,13 @@
           }],
           ['_toolset=="host"', {
             'conditions': [
-              [ 'host_arch=="ia32"', {
+              # nodejs-mobile patch: https://github.com/nodejs/node/pull/57748
+              [ 'host_arch=="ia32" or (target_arch=="ia32" or target_arch=="arm")', {
                 'cflags': [ '-m32' ],
                 'ldflags': [ '-m32' ],
               }],
-              [ 'host_arch=="x64"', {
+              # nodejs-mobile patch: https://github.com/nodejs/node/pull/57748
+              [ 'host_arch=="x64" and (target_arch=="x64" or target_arch=="arm64")', {
                 'cflags': [ '-m64' ],
                 'ldflags': [ '-m64' ],
               }],
