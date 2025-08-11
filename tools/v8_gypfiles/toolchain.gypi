@@ -587,11 +587,6 @@
       ['OS=="ios"', {
         'target_conditions': [
           ['_toolset=="host" and host_os=="mac"', {
-            'xcode_settings': {
-              'SDKROOT': '',
-              'IPHONEOS_DEPLOYMENT_TARGET': '',
-              'MACOSX_DEPLOYMENT_TARGET': '11.0',
-            },
             'conditions':[
               ['target_arch=="arm64" and host_arch != "arm64"', {
                 'xcode_settings': {

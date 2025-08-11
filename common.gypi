@@ -697,17 +697,48 @@
           'GCC_ENABLE_PASCAL_STRINGS': 'NO',        # No -mpascal-strings
           'GCC_STRICT_ALIASING': 'NO',              # -fno-strict-aliasing
           'PREBINDING': 'NO',                       # No -Wl,-prebind
-          'IPHONEOS_DEPLOYMENT_TARGET': '14.0',     # -miphoneos-version-min=14.0
           'USE_HEADERMAP': 'NO',
-          'WARNING_CFLAGS': [
-            '-Wall',
-            '-Wendif-labels',
-            '-W',
-            '-Wno-unused-parameter',
-            '-Wno-enum-constexpr-conversion',
-          ],
         },
         'target_conditions': [
+          ['_toolset=="host"', {
+            'xcode_settings': {
+              'MACOSX_DEPLOYMENT_TARGET': '13.5',   # Use macOS deployment target for host tools
+              'WARNING_CFLAGS': [
+                '-Wall',
+                '-Wendif-labels',
+                '-W',
+                '-Wno-unused-parameter',
+              ],
+            },
+          }, {
+            'xcode_settings': {
+              'IPHONEOS_DEPLOYMENT_TARGET': '14.0', # -miphoneos-version-min=14.0
+              'WARNING_CFLAGS': [
+                '-Wall',
+                '-Wendif-labels',
+                '-W',
+                '-Wno-unused-parameter',
+                '-Wno-enum-constexpr-conversion',
+              ],
+            },
+            'conditions': [
+              ['iossim!="true" and target_arch in "arm64 arm armv7s"', {
+                'xcode_settings': {
+                  'OTHER_CFLAGS': [
+                    '-fembed-bitcode'
+                  ],
+                  'OTHER_CPLUSPLUSFLAGS': [
+                    '-fembed-bitcode'
+                  ],
+                }
+              }],
+              ['target_arch=="x64" or target_arch=="ia32" or (target_arch=="arm64" and iossim=="true")', {
+                'xcode_settings': { 'SDKROOT': 'iphonesimulator' },
+              }, {
+                'xcode_settings': { 'SDKROOT': 'iphoneos', 'ENABLE_BITCODE': 'YES' },
+              }],
+            ],
+          }],
           ['_type!="static_library"', {
             'xcode_settings': {
               'OTHER_LDFLAGS': [
@@ -724,16 +755,6 @@
           ['target_arch=="x64"', {
             'xcode_settings': {'ARCHS': ['x86_64']},
           }],
-          ['iossim!="true" and target_arch in "arm64 arm armv7s"', {
-            'xcode_settings': {
-              'OTHER_CFLAGS': [
-                '-fembed-bitcode'
-              ],
-              'OTHER_CPLUSPLUSFLAGS': [
-                '-fembed-bitcode'
-              ],
-            }
-          }],
           [ 'target_arch=="arm64"', {
             'xcode_settings': {'ARCHS': ['arm64']},
           }],
@@ -749,11 +770,6 @@
               'CLANG_CXX_LANGUAGE_STANDARD': 'gnu++20',  # -std=gnu++20
               'CLANG_CXX_LIBRARY': 'libc++',
             },
-          }],
-          ['target_arch=="x64" or target_arch=="ia32" or (target_arch=="arm64" and iossim=="true")', {
-            'xcode_settings': { 'SDKROOT': 'iphonesimulator' },
-          }, {
-            'xcode_settings': { 'SDKROOT': 'iphoneos', 'ENABLE_BITCODE': 'YES' },
           }],
         ],
       }],
