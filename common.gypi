@@ -710,6 +710,14 @@
                 '-Wno-unused-parameter',
               ],
             },
+            'conditions': [
+              ['host_arch=="arm64"', {
+                'xcode_settings': {'ARCHS': ['arm64']},
+              }],
+              ['host_arch=="x64"', {
+                'xcode_settings': {'ARCHS': ['x86_64']},
+              }],
+            ],
           }, {
             'xcode_settings': {
               'IPHONEOS_DEPLOYMENT_TARGET': '14.0', # -miphoneos-version-min=14.0
@@ -742,7 +750,6 @@
           ['_type!="static_library"', {
             'xcode_settings': {
               'OTHER_LDFLAGS': [
-                '-Wl,-no_pie',
                 '-Wl,-search_paths_first',
               ],
             },

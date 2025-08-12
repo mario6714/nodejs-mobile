@@ -112,7 +112,7 @@ build_for_x64_simulator() {
   make clean
   GYP_DEFINES="target_arch=x64 host_os=mac target_os=ios"
   export GYP_DEFINES
-  arch -x86_64 ./configure \
+  ./configure \
     --dest-os=ios \
     --dest-cpu=x64 \
     --with-intl=none \
@@ -124,7 +124,7 @@ build_for_x64_simulator() {
     --v8-options=--jitless \
     --without-node-code-cache \
     --without-node-snapshot
-  arch -x86_64 JOBS=$(getconf _NPROCESSORS_ONLN) make -j$(getconf _NPROCESSORS_ONLN)
+  JOBS=$(getconf _NPROCESSORS_ONLN) make -j$(getconf _NPROCESSORS_ONLN)
 
   # Move compilation outputs
   mkdir -p $TARGET_LIBRARY_PATH/x64-simulator
