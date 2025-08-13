@@ -20,13 +20,8 @@ namespace v8::internal::trap_handler {
 // It would require some careful security review before the trap handler
 // can be enabled on Android.  Android may do unexpected things with signal
 // handling and crash reporting that could open up security holes in V8's
-// trap handling.  So we disable the trap handler everywhere except for iOS
-// Simulator on x86_64, where it seems required for successful compilation.
-#if V8_TARGET_ARCH_X64 && V8_TARGET_OS_IOS
-#define V8_TRAP_HANDLER_SUPPORTED true
-#else
+// trap handling.  So we disable the trap handler everywhere.
 #define V8_TRAP_HANDLER_SUPPORTED false
-#endif
 
 #if V8_OS_ANDROID && V8_TRAP_HANDLER_SUPPORTED
 // It would require some careful security review before the trap handler
