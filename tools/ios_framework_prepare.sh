@@ -124,7 +124,7 @@ build_for_x64_simulator() {
     --v8-options=--jitless \
     --without-node-code-cache \
     --without-node-snapshot
-  JOBS=$(getconf _NPROCESSORS_ONLN) make -j$(getconf _NPROCESSORS_ONLN)
+  JOBS=$(getconf _NPROCESSORS_ONLN) arch -x86_64 make -j$(getconf _NPROCESSORS_ONLN)
 
   # Move compilation outputs
   mkdir -p $TARGET_LIBRARY_PATH/x64-simulator
