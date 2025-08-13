@@ -254,6 +254,11 @@
         'NODE_PLATFORM="darwin"',
       ],
     }],
+    # nodejs-mobile patch: link CoreFoundation and Security frameworks when compiling for iOS
+    [ 'OS=="ios"', {
+      # linking Corefoundation and Security is needed for crypto functionality
+      'libraries': [ '-framework CoreFoundation -framework Security' ],
+    }],
     [ 'OS=="freebsd"', {
       'libraries': [
         '-lutil',
