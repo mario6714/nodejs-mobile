@@ -55,7 +55,7 @@ else:
 print("\033[92mInfo: \033[0m" + "Configuring for " + DEST_CPU + "...")
 
 if platform.system() == "Darwin":
-    host_os = "darwin"
+    host_os = "mac"
     toolchain_path = android_ndk_path + "/toolchains/llvm/prebuilt/darwin-x86_64"
 
 elif platform.system() == "Linux":

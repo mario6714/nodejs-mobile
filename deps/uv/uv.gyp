@@ -298,8 +298,22 @@
           'defines': [
             '_GNU_SOURCE',
           ],
-          'sources': [
-            '<@(uv_sources_android)',
+          'target_conditions': [
+            ['_toolset=="target"', {
+              'sources': [
+                '<@(uv_sources_android)',
+              ],
+            }],
+            ['_toolset=="host" and host_os=="mac"', {
+              'sources': [
+                '<@(uv_sources_apple)',
+              ],
+            }],
+            ['_toolset=="host" and host_os=="linux"', {
+              'sources': [
+                '<@(uv_sources_linux)',
+              ],
+            }],
           ],
           'link_settings': {
             'libraries': [ '-ldl' ],

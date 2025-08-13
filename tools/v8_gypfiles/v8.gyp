@@ -1471,7 +1471,7 @@
                 ['host_os == "mac"', {
                   'sources': [
                     '<(V8_ROOT)/src/base/debug/stack_trace_posix.cc',
-                    '<(V8_ROOT)/src/base/platform/platform-macos.cc',
+                    '<(V8_ROOT)/src/base/platform/platform-darwin.cc',
                   ]
                 }, {
                   'sources': [
