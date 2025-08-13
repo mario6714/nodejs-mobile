@@ -1622,7 +1622,8 @@ class NinjaWriter:
                     )
                     variables.append(("libflags", libflags))
 
-                if self.flavor != "mac" or len(self.archs) == 1:
+                # nodejs-mobile patch: add ios
+                if self.flavor not in ("mac", "ios") or len(self.archs) == 1:
                     self.AppendPostbuildVariable(
                         variables, spec, self.target.binary, self.target.binary
                     )
