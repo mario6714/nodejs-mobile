@@ -702,6 +702,7 @@
         'target_conditions': [
           ['_toolset=="host"', {
             'xcode_settings': {
+              'SDKROOT': 'macosx',
               'MACOSX_DEPLOYMENT_TARGET': '13.5',   # Use macOS deployment target for host tools
               'WARNING_CFLAGS': [
                 '-Wall',
