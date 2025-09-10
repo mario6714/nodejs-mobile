@@ -33,6 +33,7 @@ declare -a outputs_common=(
   "libopenssl.a"
   "libsimdjson.a"
   "libsimdutf.a"
+  "libsqlite.a"
   "libuv.a"
   "libuvwasi.a"
   "libv8_base_without_compiler.a"
@@ -67,7 +68,6 @@ build_for_arm64_device() {
     --enable-static \
     --openssl-no-asm \
     --v8-options=--jitless \
-    --without-sqlite \
     --without-node-code-cache \
     --without-node-snapshot
   make -j$(getconf _NPROCESSORS_ONLN)
@@ -91,7 +91,6 @@ build_for_arm64_simulator() {
     --enable-static \
     --openssl-no-asm \
     --v8-options=--jitless \
-    --without-sqlite \
     --without-node-code-cache \
     --without-node-snapshot \
     --ios-simulator
@@ -116,7 +115,6 @@ build_for_x64_simulator() {
     --enable-static \
     --openssl-no-asm \
     --v8-options=--jitless \
-    --without-sqlite \
     --without-node-code-cache \
     --without-node-snapshot
   arch -x86_64 make -j$(getconf _NPROCESSORS_ONLN)
